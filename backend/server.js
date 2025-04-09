@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const dotenv = require('dotenv');
 const path = require('path');
@@ -12,6 +13,10 @@ connectDatabase();
 
 // Middleware to parse JSON
 app.use(express.json());
+
+// Enable CORS
+app.use(cors());
+console.log('🌐 CORS enabled for all origins');
 
 // Import Routes
 const products = require('./routes/product');
