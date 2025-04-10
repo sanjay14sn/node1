@@ -6,13 +6,11 @@ const path = require('path');
 const connectDatabase = require('./config/db');
 const admin = require('firebase-admin');
 
-// Load environment variables
+// Load env vars
 dotenv.config({ path: path.join(__dirname, 'config', 'config.env') });
 
-// Load Firebase credentials
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-  : require('./config/firebaseServiceAccountKey.json'); // fallback for local dev only
+// Use service account key from file
+const serviceAccount = require('./config/firebaseServiceAccountKey.json');
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
@@ -27,15 +25,14 @@ app.use(express.json());
 app.use(cors());
 console.log('🌐 CORS enabled for all origins');
 
-// Import Routes
+// Routes
 const products = require('./routes/product');
 const orders = require('./routes/order');
 
-// API Routes
 app.use('/api/v1/', products);
 app.use('/api/v1/', orders);
 
-// Health check route
+// Health check
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
