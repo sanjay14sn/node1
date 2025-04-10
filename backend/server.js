@@ -3,43 +3,34 @@ const cors = require('cors');
 const app = express();
 const dotenv = require('dotenv');
 const path = require('path');
-const connectDatabase = require('./config/db');
-const admin = require('firebase-admin');
 const fs = require('fs');
+const admin = require('firebase-admin');
+const connectDatabase = require('./config/db');
 
-// Load env vars
+// Load environment variables
 dotenv.config({ path: path.join(__dirname, 'config', 'config.env') });
 
-// ✅ Load Firebase Service Account
-let serviceAccount;
+// ✅ Initialize Firebase Admin SDK
+let firebaseKeyPath;
 
-if (process.env.FIREBASE_CONFIG) {
-  // Render / Production
-  try {
-    serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG.replace(/\\n/g, '\n'));
-  } catch (error) {
-    console.error('❌ Error parsing FIREBASE_CONFIG:', error.message);
-    process.exit(1);
-  }
+if (fs.existsSync('/etc/secrets/firebaseServiceAccountKey.json')) {
+  // 🔐 Render (Production)
+  firebaseKeyPath = '/etc/secrets/firebaseServiceAccountKey.json';
 } else {
-  // Local development
-  try {
-    const raw = fs.readFileSync(path.join(__dirname, 'config', 'firebaseServiceAccountKey.json'));
-    serviceAccount = JSON.parse(raw);
-  } catch (error) {
-    console.error('❌ Failed to load local firebaseServiceAccountKey.json:', error.message);
-    process.exit(1);
-  }
+  // 🧪 Local development
+  firebaseKeyPath = path.join(__dirname, 'config', 'firebaseServiceAccountKey.json');
 }
 
-// Use secret file path in Render, fallback to local path
-const firebaseKeyPath = fs.existsSync('/etc/secrets/firebaseServiceAccountKey.json')
-  ? '/etc/secrets/firebaseServiceAccountKey.json' // Render
-  : path.join(__dirname, 'config', 'firebaseServiceAccountKey.json'); // Local
-
-admin.initializeApp({
-  credential: admin.credential.cert(require(firebaseKeyPath)),
-});
+try {
+  const serviceAccount = require(firebaseKeyPath);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+  console.log('✅ Firebase Admin initialized');
+} catch (error) {
+  console.error('❌ Failed to initialize Firebase Admin:', error.message);
+  process.exit(1);
+}
 
 // Connect to MongoDB
 connectDatabase();
