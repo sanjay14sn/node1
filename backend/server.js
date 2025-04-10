@@ -13,13 +13,8 @@ dotenv.config({ path: path.join(__dirname, 'config', 'config.env') });
 let serviceAccount;
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  // Production (Render) - parse directly without replace
-  try {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  } catch (err) {
-    console.error('Error parsing FIREBASE_SERVICE_ACCOUNT:', err);
-    throw err;
-  }
+  // Production (Render)
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\\n/g, '\n'));
 } else {
   // Local
   serviceAccount = require('./config/firebaseServiceAccountKey.json');
