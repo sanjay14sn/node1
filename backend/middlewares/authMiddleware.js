@@ -1,21 +1,37 @@
-// middlewares/firebaseAuth.js
 const admin = require('firebase-admin');
 
 const verifyFirebaseToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
+
+  console.log('🛂 Incoming request to protected route');
+  console.log('🔍 Authorization Header:', authHeader || 'None');
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Unauthorized: No token provided' });
+    console.warn('⚠️ No Bearer token found in Authorization header');
+    return res.status(401).json({
+      success: false,
+      message: 'Unauthorized: No token provided',
+    });
   }
 
   const token = authHeader.split(' ')[1];
 
   try {
+    console.log('🔐 Verifying Firebase token...');
     const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = decodedToken; // Contains uid, email, etc.
+    console.log('✅ Token verified! UID:', decodedToken.uid);
+
+    req.user = decodedToken; // uid, email, etc.
     next();
   } catch (err) {
-    console.error('Token verification failed:', err.message);
-    return res.status(403).json({ success: false, message: 'Forbidden: Invalid token' });
+    console.error('❌ Firebase token verification failed');
+    console.error('🧾 Error details:', err);
+
+    return res.status(403).json({
+      success: false,
+      message: 'Forbidden: Invalid token',
+      error: err.message,
+    });
   }
 };
 

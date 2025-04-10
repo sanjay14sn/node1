@@ -13,12 +13,15 @@ const {
 
 // ✅ Test Route for Firebase Auth
 Router.get('/test-auth', verifyFirebaseToken, (req, res) => {
+  console.log('🎉 Authenticated request from:', req.user.email || req.user.uid);
+
   res.json({
     success: true,
     message: 'Token verified successfully!',
-    user: req.user, // This will have uid, email, etc.
+    user: req.user,
   });
 });
+
 
 // Product Routes
 Router.route('/products')
