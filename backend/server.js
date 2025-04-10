@@ -12,15 +12,17 @@ dotenv.config({ path: path.join(__dirname, 'config', 'config.env') });
 // ✅ Load Firebase Service Account
 let serviceAccount;
 
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  // Production (Render)
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\\n/g, '\n'));
+if (process.env.FIREBASE_CONFIG) {
+  // Render / Production
+  serviceAccount = JSON.parse(
+    process.env.FIREBASE_CONFIG.replace(/\\n/g, '\n')
+  );
 } else {
-  // Local
+  // Local development
   serviceAccount = require('./config/firebaseServiceAccountKey.json');
 }
 
-// Initialize Firebase Admin SDK
+// ✅ Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
