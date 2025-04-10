@@ -9,8 +9,16 @@ const admin = require('firebase-admin');
 // Load env vars
 dotenv.config({ path: path.join(__dirname, 'config', 'config.env') });
 
-// Use service account key from file
-const serviceAccount = require('./config/firebaseServiceAccountKey.json');
+// ✅ Load Firebase Service Account
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  // Production (Render)
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\\n/g, '\n'));
+} else {
+  // Local
+  serviceAccount = require('./config/firebaseServiceAccountKey.json');
+}
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
