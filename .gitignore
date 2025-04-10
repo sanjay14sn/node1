@@ -1,5 +1,7 @@
 # Ignore Firebase service account key
 backend/config/firebaseServiceAccountKey.json
+backend/config/firebaseServiceAccountKey.json.json
+
 
 # Node modules
 node_modules/
