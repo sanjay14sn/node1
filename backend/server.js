@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const connectDatabase = require('./config/db');
 const admin = require('firebase-admin');
+const fs = require('fs');
 
 // Load env vars
 dotenv.config({ path: path.join(__dirname, 'config', 'config.env') });
@@ -14,17 +15,30 @@ let serviceAccount;
 
 if (process.env.FIREBASE_CONFIG) {
   // Render / Production
-  serviceAccount = JSON.parse(
-    process.env.FIREBASE_CONFIG.replace(/\\n/g, '\n')
-  );
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG.replace(/\\n/g, '\n'));
+  } catch (error) {
+    console.error('❌ Error parsing FIREBASE_CONFIG:', error.message);
+    process.exit(1);
+  }
 } else {
   // Local development
-  serviceAccount = require('./config/firebaseServiceAccountKey.json');
+  try {
+    const raw = fs.readFileSync(path.join(__dirname, 'config', 'firebaseServiceAccountKey.json'));
+    serviceAccount = JSON.parse(raw);
+  } catch (error) {
+    console.error('❌ Failed to load local firebaseServiceAccountKey.json:', error.message);
+    process.exit(1);
+  }
 }
 
-// ✅ Initialize Firebase Admin SDK
+// Use secret file path in Render, fallback to local path
+const firebaseKeyPath = fs.existsSync('/etc/secrets/firebaseServiceAccountKey.json')
+  ? '/etc/secrets/firebaseServiceAccountKey.json' // Render
+  : path.join(__dirname, 'config', 'firebaseServiceAccountKey.json'); // Local
+
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(require(firebaseKeyPath)),
 });
 
 // Connect to MongoDB
