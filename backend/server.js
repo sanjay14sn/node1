@@ -4,9 +4,19 @@ const app = express();
 const dotenv = require('dotenv');
 const path = require('path');
 const connectDatabase = require('./config/connectDatabase');
+const admin = require('firebase-admin');
+const serviceAccount = require('./config/firebaseServiceAccountKey.json');
 
 // Load env vars
 dotenv.config({ path: path.join(__dirname, 'config', 'config.env') });
+
+
+
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 
 // Connect to MongoDB
 connectDatabase();
@@ -36,4 +46,5 @@ const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
   console.log(`✅ Server listening on port ${PORT}`);
+  
 });

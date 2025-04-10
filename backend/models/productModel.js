@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
 
-    name:{ type:String , required:true},
-    price: { type:String , required:true},
-    description : { type:String , required:true},
+    name:{ type:String , default: ""},
+    price: String,
+    description :String,
     ratings:{ type: String, default: "0" },
     images: [{
         Image:String,
@@ -15,6 +15,15 @@ const productSchema = new mongoose.Schema({
     ratingcount:{ type: String, default: "0" },
     isfavourite:Boolean,
     createdat:Date,
+    createdBy: {
+        type: String,
+        required: false
+      },
+      creatorId: {
+        type: String,
+        required: false
+      },
+      
 
 });
 

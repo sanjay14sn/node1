@@ -19,41 +19,81 @@ exports.getsingleProduct= (req , res ,next) => {
 }
 
 exports.createProduct = async (req, res, next) => {
-    try {
-        const newProduct = await productModel.create(req.body);
-        res.status(201).json({
-            success: true,
-            product: newProduct,
-        });
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message,
-        });
-    }
+  try {
+    const userEmail = req.user.email; // From Firebase token
+    const userId = req.user.uid;
+
+    const newProduct = await productModel.create({
+      ...req.body,
+      createdBy: userEmail,
+      creatorId: userId,
+    });
+
+    res.status(201).json({
+      success: true,
+      product: newProduct,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
-exports.deleteProduct = async (req, res, next) => {
+
+exports.deleteProduct = async (req, res) => {
     try {
-        const product = await productModel.findById(req.params.id);
-
-        if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found"
-            });
-        }
-
-        await product.deleteOne(); // or product.remove()
-        
-        res.status(200).json({
-            success: true,
-            message: "Product deleted successfully"
+      const product = await productModel.findByIdAndDelete(req.params.id);
+  
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found",
         });
+      }
+  
+      res.status(200).json({
+        success: true,
+        message: "Product deleted successfully",
+      });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
     }
-};
+  };
+  
+  
+
+// POST /products/:id/toggle-favourite
+exports.toggleFavourite = async (req, res, next) => {
+    try {
+      const product = await productModel.findById(req.params.id);
+  
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found"
+        });
+      }
+  
+      // Toggle the value
+      product.isfavourite = !product.isfavourite;
+      await product.save();
+  
+      res.status(200).json({
+        success: true,
+        message: `isfavourite set to ${product.isfavourite}`,
+        product
+      });
+    } catch (error) {
+      console.error("Toggle error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  };
+  
