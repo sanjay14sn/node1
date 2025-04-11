@@ -58,3 +58,36 @@ exports.getUserByUID = async (req, res) => {
     });
   }
 };
+
+// Update user profile fields
+exports.updateUserProfile = async (req, res) => {
+    try {
+      const { uid } = req.user; // from Firebase auth middleware
+      const { phone, dob, userRating, name, aboutUser } = req.body;
+  
+      const updatedUser = await User.findOneAndUpdate(
+        { uid },
+        {
+          phone,
+          dob,
+          userRating,
+          name,
+          aboutUser,
+        },
+        { new: true, upsert: true }
+      );
+  
+      res.status(200).json({
+        success: true,
+        message: 'User updated successfully',
+        user: updatedUser,
+      });
+    } catch (err) {
+      console.error('❌ Failed to update user:', err.message);
+      res.status(500).json({
+        success: false,
+        message: 'Server error',
+      });
+    }
+  };
+  
