@@ -6,7 +6,9 @@ const verifyFirebaseToken = require('../middlewares/authMiddleware');
 // 🆕 Save user if new
 router.post('/user/save', verifyFirebaseToken, async (req, res) => {
   try {
-    const { uid, email, name, picture } = req.user;
+    const { uid, email } = req.user;
+const { name, photoURL } = req.body;
+
 
     let user = await User.findOne({ uid });
 
