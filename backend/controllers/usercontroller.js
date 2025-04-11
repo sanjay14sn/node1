@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const User = require('../models/user');
 
 // Save user if new
 exports.saveUser = async (req, res) => {
