@@ -43,6 +43,8 @@ console.log('🌐 CORS enabled for all origins');
 // Routes
 const products = require('./routes/product');
 const orders = require('./routes/order');
+const userRoutes = require('./routes/user');
+app.use('/api/v1', userRoutes);
 
 app.use('/api/v1/', products);
 app.use('/api/v1/', orders);

@@ -1,14 +1,10 @@
-const express = require('express');
-const router = express.Router();
 const User = require('../models/User');
-const verifyFirebaseToken = require('../middlewares/authMiddleware');
 
-// 🆕 Save user if new
-router.post('/user/save', verifyFirebaseToken, async (req, res) => {
+// Save user if new
+exports.saveUser = async (req, res) => {
   try {
     const { uid, email } = req.user;
-const { name, photoURL } = req.body;
-
+    const { name, photoURL } = req.body;
 
     let user = await User.findOne({ uid });
 
@@ -17,7 +13,7 @@ const { name, photoURL } = req.body;
         uid,
         email,
         name,
-        photoURL: picture,
+        photoURL,
       });
       await user.save();
       console.log('✅ New user saved in DB');
@@ -36,10 +32,10 @@ const { name, photoURL } = req.body;
       message: 'Server error',
     });
   }
-});
+};
 
-// Existing: Get user by UID
-router.get('/user/:uid', async (req, res) => {
+// Get user by UID
+exports.getUserByUID = async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.params.uid });
 
@@ -61,6 +57,4 @@ router.get('/user/:uid', async (req, res) => {
       message: 'Server error',
     });
   }
-});
-
-module.exports = router;
+};
