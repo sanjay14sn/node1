@@ -14,10 +14,6 @@ exports.saveUser = async (req, res) => {
         email,
         name,
         photoURL,
-        phone,
-        dob,
-        userRating,
-        aboutUser
       });
       await user.save();
       console.log('✅ New user saved in DB');
