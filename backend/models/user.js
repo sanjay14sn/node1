@@ -13,14 +13,11 @@ const userSchema = new mongoose.Schema({
   name: String,
   photoURL: String,
   phone: String,
+
+  
   dob: Date,
-  userRating: {
-    type: Number,
-    default: 0,
-  },
-  aboutUser: {
-    type: [String], // or { section1: String, section2: String } if you want object format
-  },
+  userRating: String,
+  aboutUser:String,
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
