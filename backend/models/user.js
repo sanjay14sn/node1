@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const userSchema = new mongoose.Schema({
   uid: {
     type: String,
@@ -13,11 +12,10 @@ const userSchema = new mongoose.Schema({
   name: String,
   photoURL: String,
   phone: String,
-
-  
   dob: Date,
   userRating: String,
-  aboutUser:String,
+  aboutUser: [String],  // Change this to an array of strings
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
+
