@@ -5,5 +5,7 @@ const { publishRide } = require('../controllers/publishcontroller');
 
 // Route: POST /api/rides/publish
 router.post('/publish', publishRide);
+// GET route to search rides
+router.get('/search', publishController.searchRides);
 
 module.exports = router;

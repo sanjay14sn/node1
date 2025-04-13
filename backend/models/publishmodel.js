@@ -1,29 +1,38 @@
-// models/publishmodel.js
-const mongoose = require('mongoose');
+exports.publishRide = async (req, res) => {
+  try {
+    const {
+      uid,
+      from,
+      to,
+      date,
+      time,
+      seatsAvailable,
+      pricePerSeat,
+      vehicleDetails
+    } = req.body;
 
-const rideSchema = new mongoose.Schema({
-  uid: { type: String, required: true },
-  from: {
-    city: String,
-    location: String,
-    lat: Number,
-    lng: Number
-  },
-  to: {
-    city: String,
-    location: String,
-    lat: Number,
-    lng: Number
-  },
-  date: { type: Date, required: true }, // full date (with or without time)
-  time: { type: String, required: true }, // example: "10:30 AM"
-  seatsAvailable: { type: Number, required: true },
-  pricePerSeat: Number,
-  vehicleDetails: {
-    type: { type: String },
-    plateNumber: String
-  },
-  createdAt: { type: Date, default: Date.now }
-});
+    const newRide = new Ride({
+      uid,
+      from,
+      to,
+      date,
+      time,
+      seatsAvailable,
+      pricePerSeat,
+      vehicleDetails
+    });
 
-module.exports = mongoose.model('Ride', rideSchema);
+    const savedRide = await newRide.save(); // 🧠 Pre-save will auto-set coordinates
+
+    res.status(201).json({
+      success: true,
+      ride: savedRide
+    });
+  } catch (err) {
+    console.error('❌ Failed to publish ride:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
