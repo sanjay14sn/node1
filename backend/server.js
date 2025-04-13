@@ -7,6 +7,7 @@ const fs = require('fs');
 const admin = require('firebase-admin');
 const connectDatabase = require('./config/db');
 
+
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, 'config', 'config.env') });
 
@@ -42,12 +43,14 @@ console.log('🌐 CORS enabled for all origins');
 
 // Routes
 const products = require('./routes/product');
+const publishRoutes = require('./routes/publish'); // <-- ✅ Add this
 const orders = require('./routes/order');
 const userRoutes = require('./routes/user');
 app.use('/api/v1', userRoutes);
 
 app.use('/api/v1/', products);
 app.use('/api/v1/', orders);
+app.use('/api/v1/rides', publishRoutes); // <-- ✅ Add this
 
 // Health check
 app.get('/', (req, res) => {
