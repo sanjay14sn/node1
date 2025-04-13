@@ -60,32 +60,34 @@ exports.searchRides = async (req, res) => {
       });
     }
 
+    const fromLatitude = parseFloat(fromLat);
+    const fromLongitude = parseFloat(fromLng);
+    const toLatitude = parseFloat(toLat);
+    const toLongitude = parseFloat(toLng);
+
     console.log('🔍 Searching rides within 50km of both FROM and TO:', {
-      fromLatitude: parseFloat(fromLat),
-      fromLongitude: parseFloat(fromLng),
-      toLatitude: parseFloat(toLat),
-      toLongitude: parseFloat(toLng)
+      fromLatitude,
+      fromLongitude,
+      toLatitude,
+      toLongitude
     });
+
+    // Earth radius in km
+    const radiusInKm = 50;
+    const degreeOffset = radiusInKm / 111; // ~111 km per degree
 
     const rides = await Ride.find({
       'from.coordinates': {
         $near: {
           $geometry: {
             type: 'Point',
-            coordinates: [parseFloat(fromLng), parseFloat(fromLat)]
+            coordinates: [fromLongitude, fromLatitude]
           },
-          $maxDistance: 50000 // 50 km
+          $maxDistance: 50000
         }
       },
-      'to.coordinates': {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [parseFloat(toLng), parseFloat(toLat)]
-          },
-          $maxDistance: 50000 // 50 km
-        }
-      }
+      'to.lat': { $gte: toLatitude - degreeOffset, $lte: toLatitude + degreeOffset },
+      'to.lng': { $gte: toLongitude - degreeOffset, $lte: toLongitude + degreeOffset }
     });
 
     res.status(200).json({
@@ -101,3 +103,4 @@ exports.searchRides = async (req, res) => {
     });
   }
 };
+
