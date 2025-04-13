@@ -1,38 +1,49 @@
-exports.publishRide = async (req, res) => {
-  try {
-    const {
-      uid,
-      from,
-      to,
-      date,
-      time,
-      seatsAvailable,
-      pricePerSeat,
-      vehicleDetails
-    } = req.body;
+const mongoose = require('mongoose');
 
-    const newRide = new Ride({
-      uid,
-      from,
-      to,
-      date,
-      time,
-      seatsAvailable,
-      pricePerSeat,
-      vehicleDetails
-    });
+const rideSchema = new mongoose.Schema({
+  uid: { type: String, required: true },
+  from: {
+    city: String,
+    location: String,
+    lat: Number,
+    lng: Number,
+    coordinates: {
+      type: [Number], // [lng, lat]
+      index: '2dsphere'
+    }
+  },
+  to: {
+    city: String,
+    location: String,
+    lat: Number,
+    lng: Number,
+    coordinates: {
+      type: [Number], // [lng, lat]
+      index: '2dsphere'
+    }
+  },
+  date: { type: Date, required: true },
+  time: { type: String, required: true },
+  seatsAvailable: { type: Number, required: true },
+  pricePerSeat: Number,
+  vehicleDetails: {
+    type: { type: String },
+    plateNumber: String
+  },
+  createdAt: { type: Date, default: Date.now }
+});
 
-    const savedRide = await newRide.save(); // 🧠 Pre-save will auto-set coordinates
 
-    res.status(201).json({
-      success: true,
-      ride: savedRide
-    });
-  } catch (err) {
-    console.error('❌ Failed to publish ride:', err.message);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+// ✅ Automatically set `coordinates` before saving
+rideSchema.pre('save', function (next) {
+  if (this.to?.lat != null && this.to?.lng != null) {
+    this.to.coordinates = [this.to.lng, this.to.lat];
   }
-};
+  if (this.from?.lat != null && this.from?.lng != null) {
+    this.from.coordinates = [this.from.lng, this.from.lat];
+  }
+  next();
+});
+
+
+module.exports = mongoose.model('Ride', rideSchema);

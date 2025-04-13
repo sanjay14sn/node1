@@ -42,9 +42,11 @@ exports.publishRide = async (req, res) => {
   }
 };
 // Search rides within 50 km of provided lat/lng
+
+// Search rides within 50 km of provided lat/lng
 exports.searchRides = async (req, res) => {
   try {
-    const { lat, lng } = req.query;
+    const { lat, lng, direction = 'to' } = req.query;
 
     if (!lat || !lng) {
       return res.status(400).json({
@@ -53,14 +55,21 @@ exports.searchRides = async (req, res) => {
       });
     }
 
+    if (!['to', 'from'].includes(direction)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Direction must be either "to" or "from".'
+      });
+    }
+
     const rides = await Ride.find({
-      'to.coordinates': {
+      [`${direction}.coordinates`]: {
         $near: {
           $geometry: {
             type: 'Point',
             coordinates: [parseFloat(lng), parseFloat(lat)]
           },
-          $maxDistance: 50000 // 50 km in meters
+          $maxDistance: 50000 // 50 km
         }
       }
     });
@@ -78,3 +87,4 @@ exports.searchRides = async (req, res) => {
     });
   }
 };
+
