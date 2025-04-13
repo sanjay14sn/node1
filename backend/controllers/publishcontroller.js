@@ -104,3 +104,30 @@ exports.searchRides = async (req, res) => {
   }
 };
 
+// Get all rides published by a specific user
+exports.getMyRides = async (req, res) => {
+  try {
+    const { uid } = req.query;
+
+    if (!uid) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID (uid) is required.'
+      });
+    }
+
+    const userRides = await Ride.find({ uid });
+
+    res.status(200).json({
+      success: true,
+      results: userRides.length,
+      rides: userRides
+    });
+  } catch (err) {
+    console.error('❌ Failed to fetch user rides:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
