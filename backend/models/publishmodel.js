@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');  // Import UUID package
 
 const rideSchema = new mongoose.Schema({
+  rideId: { type: String, default: uuidv4 }, // ⬅️ Use UUID as rideId
   uid: { type: String, required: true },
   from: {
     city: String,
@@ -23,7 +25,8 @@ const rideSchema = new mongoose.Schema({
     }
   },
   date: { type: Date, required: true },
-  time: { type: String, required: true },
+  startTime: { type: String },
+  endTime: { type: String },
   seatsAvailable: { type: Number, required: true },
   pricePerSeat: Number,
   vehicleDetails: {
@@ -33,8 +36,7 @@ const rideSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-
-// ✅ Automatically set `coordinates` before saving
+// Automatically set coordinates
 rideSchema.pre('save', function (next) {
   if (this.to?.lat != null && this.to?.lng != null) {
     this.to.coordinates = [this.to.lng, this.to.lat];
@@ -44,6 +46,5 @@ rideSchema.pre('save', function (next) {
   }
   next();
 });
-
 
 module.exports = mongoose.model('Ride', rideSchema);

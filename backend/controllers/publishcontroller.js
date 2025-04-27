@@ -2,6 +2,7 @@
 const Ride = require('../models/publishmodel');
 
 // Publish a new ride
+// Publish a new ride
 exports.publishRide = async (req, res) => {
   try {
     const {
@@ -10,6 +11,8 @@ exports.publishRide = async (req, res) => {
       to,
       date,
       time,
+      startTime,
+      endTime,
       seatsAvailable,
       pricePerSeat,
       vehicleDetails
@@ -20,7 +23,8 @@ exports.publishRide = async (req, res) => {
       from,
       to,
       date,
-      time,
+      startTime,
+      endTime,
       seatsAvailable,
       pricePerSeat,
       vehicleDetails
@@ -31,7 +35,10 @@ exports.publishRide = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      ride: savedRide
+      ride: {
+        id: savedRide.rideId,  // Now UUID as rideId
+        ...savedRide.toObject()
+      }
     });
   } catch (err) {
     console.error('❌ Failed to publish ride:', err.message);
@@ -41,6 +48,7 @@ exports.publishRide = async (req, res) => {
     });
   }
 };
+
 // Search rides within 50 km of provided lat/lng
 
 // Search rides within 50 km of provided lat/lng
