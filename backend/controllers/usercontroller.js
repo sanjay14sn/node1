@@ -60,34 +60,65 @@ exports.getUserByUID = async (req, res) => {
 };
 
 // Update user profile fields
-exports.updateUserProfile = async (req, res) => {
-    try {
-      const { uid } = req.user; // from Firebase auth middleware
-      const { phone, dob, userRating, name, aboutUser } = req.body;
-  
-      const updatedUser = await User.findOneAndUpdate(
-        { uid },
-        {
-          phone,
-          dob,
-          userRating,
-          name,
-          aboutUser,
-        },
-        { new: true, upsert: true }
-      );
-  
-      res.status(200).json({
-        success: true,
-        message: 'User updated successfully',
-        user: updatedUser,
-      });
-    } catch (err) {
-      console.error('❌ Failed to update user:', err.message);
-      res.status(500).json({
-        success: false,
-        message: 'Server error',
-      });
+// Update FCM Token
+exports.updateFcmToken = async (req, res) => {
+  try {
+    const { uid } = req.user; // From Firebase middleware
+    const { fcmToken } = req.body;
+
+    const updatedUser = await User.findOneAndUpdate(
+      { uid },
+      { fcmToken },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
-  };
-  
+
+    res.status(200).json({
+      success: true,
+      message: 'FCM token updated successfully',
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.error('❌ Failed to update FCM token:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
+};
+
+// Update user profile fields
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const { uid } = req.user; // from Firebase auth middleware
+    const { phone, dob, userRating, name, aboutUser } = req.body;
+
+    const updatedUser = await User.findOneAndUpdate(
+      { uid },
+      {
+        phone,
+        dob,
+        userRating,
+        name,
+        aboutUser,
+      },
+      { new: true, upsert: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.error('❌ Failed to update user:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
+};
+

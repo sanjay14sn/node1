@@ -14,7 +14,8 @@ const userSchema = new mongoose.Schema({
   phone: String,
   dob: Date,
   userRating: String,
-  aboutUser: [String],  // Change this to an array of strings
+  aboutUser: [String],
+  fcmToken: String, // 🔥 Add this line
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

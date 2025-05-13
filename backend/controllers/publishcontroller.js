@@ -138,6 +138,42 @@ exports.searchRides = async (req, res) => {
   }
 };
 
+// controllers/usercontroller.js
+
+exports.updateFcmToken = async (req, res) => {
+  try {
+    const { uid } = req.user; // Assuming Firebase auth
+    const { fcmToken } = req.body;
+
+    if (!fcmToken) {
+      return res.status(400).json({ success: false, message: 'FCM token is required' });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { uid },
+      { fcmToken },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'FCM token updated successfully',
+      user,
+    });
+  } catch (err) {
+    console.error('❌ Failed to update FCM token:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
+};
+
+
 // Get all rides published by a specific user
 exports.getMyRides = async (req, res) => {
   try {
