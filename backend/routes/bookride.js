@@ -3,7 +3,8 @@ const router = express.Router();
 const {
   requestRide,
   updateBookingStatus,
-  getBookingStatus
+  getBookingStatus,
+  getDriverBookings
 } = require("../controllers/bookridecontroller");
 const verifyAuth = require("../middlewares/authMiddleware");
 
@@ -14,5 +15,8 @@ router.post("/book", verifyAuth, requestRide);
 router.patch("/booking/:bookingId", verifyAuth, updateBookingStatus);
 
 router.get("/bookings", verifyAuth, getBookingStatus);
+
+router.get("/driver/bookings", verifyAuth, getDriverBookings);
+
 
 module.exports = router;

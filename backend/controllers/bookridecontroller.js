@@ -154,3 +154,20 @@ exports.getBookingStatus = async (req, res) => {
   }
 };
 
+// Add to bookridecontroller.js
+exports.getDriverBookings = async (req, res) => {
+  try {
+    const driverId = req.user.uid;
+
+    const rides = await Ride.find({ uid: driverId });
+    const rideIds = rides.map(r => r._id);
+
+    const bookings = await BookRide.find({ rideId: { $in: rideIds } })
+      .populate('rideId');
+
+    res.status(200).json({ success: true, bookings });
+  } catch (err) {
+    console.error('❌ Error fetching driver bookings:', err.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
