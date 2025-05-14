@@ -14,7 +14,7 @@ exports.requestRide = async (req, res) => {
       return res.status(400).json({ success: false, message: "Not enough seats available" });
     }
 
-    const newBooking = new BookRide({ rideId, userId, seatsBooked });
+    const newBooking = new BookRide({ rideId, userId, seatsBooked, bookingStatus: "Pending" });
     await newBooking.save();
 
     ride.seatsAvailable -= seatsBooked;
@@ -25,7 +25,7 @@ exports.requestRide = async (req, res) => {
       const payload = {
         notification: {
           title: "New Ride Booking 🚗",
-          body: `A user booked ${seatsBooked} seat(s) on your ride.`,
+          body: `A user booked ${seatsBooked} seat(s) on your ride. Please approve or reject.`,
         },
         token: driver.fcmToken,
       };
@@ -42,10 +42,11 @@ exports.requestRide = async (req, res) => {
   }
 };
 
+
 exports.updateBookingStatus = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const { status } = req.body;
+    const { status } = req.body; // status can be 'confirmed' or 'rejected'
     const driverId = req.user.uid;
 
     const booking = await BookRide.findById(bookingId).populate("rideId");
@@ -55,8 +56,22 @@ exports.updateBookingStatus = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
+    // Update the booking status
     booking.bookingStatus = status;
     await booking.save();
+
+    // Send notification to the user
+    const user = await User.findById(booking.userId);
+    if (user?.fcmToken) {
+      const payload = {
+        notification: {
+          title: status === 'confirmed' ? "Ride Confirmed 🎉" : "Ride Rejected 😞",
+          body: `Your booking for ride from ${booking.rideId.from.city} to ${booking.rideId.to.city} has been ${status}.`,
+        },
+        token: user.fcmToken,
+      };
+      await admin.messaging().send(payload);
+    }
 
     res.status(200).json({
       success: true,
