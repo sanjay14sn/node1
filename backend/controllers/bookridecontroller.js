@@ -7,29 +7,64 @@ exports.requestRide = async (req, res) => {
     const { rideId, seatsBooked } = req.body;
     const userId = req.user.uid;
 
+    console.log('📥 Incoming ride request:', { rideId, seatsBooked, userId });
+
     const ride = await Ride.findById(rideId);
-    if (!ride) return res.status(404).json({ success: false, message: "Ride not found" });
+    if (!ride) {
+      console.warn('❌ Ride not found with ID:', rideId);
+      return res.status(404).json({ success: false, message: "Ride not found" });
+    }
+
+    console.log('🚘 Ride found:', {
+      rideId: ride._id,
+      driverId: ride.uid,
+      seatsAvailable: ride.seatsAvailable
+    });
 
     if (ride.seatsAvailable < seatsBooked) {
+      console.warn(`⚠️ Not enough seats. Requested: ${seatsBooked}, Available: ${ride.seatsAvailable}`);
       return res.status(400).json({ success: false, message: "Not enough seats available" });
     }
 
-    const newBooking = new BookRide({ rideId, userId, seatsBooked, bookingStatus: "Pending" });
+    const newBooking = new BookRide({
+      rideId,
+      userId,
+      seatsBooked,
+      bookingStatus: "Pending"
+    });
+
     await newBooking.save();
+    console.log('✅ New booking saved:', newBooking._id);
 
     ride.seatsAvailable -= seatsBooked;
     await ride.save();
+    console.log(`🪑 Updated ride seat count. Remaining: ${ride.seatsAvailable}`);
 
     const driver = await User.findOne({ uid: ride.uid });
-    if (driver?.fcmToken) {
-      const payload = {
-        notification: {
-          title: "New Ride Booking 🚗",
-          body: `A user booked ${seatsBooked} seat(s) on your ride. Please approve or reject.`,
-        },
-        token: driver.fcmToken,
-      };
-      await admin.messaging().send(payload);
+
+    if (driver) {
+      console.log('👤 Driver found:', {
+        uid: driver.uid,
+        fcmToken: driver.fcmToken || 'No FCM token'
+      });
+
+      if (driver.fcmToken) {
+        const payload = {
+          notification: {
+            title: "New Ride Booking 🚗",
+            body: `A user booked ${seatsBooked} seat(s) on your ride. Please approve or reject.`,
+          },
+          token: driver.fcmToken,
+        };
+
+        console.log('📡 Sending FCM notification:', payload.notification);
+        await admin.messaging().send(payload);
+        console.log('✅ FCM notification sent successfully');
+      } else {
+        console.warn('⚠️ Driver has no FCM token. Notification not sent.');
+      }
+    } else {
+      console.warn('⚠️ No driver found with UID:', ride.uid);
     }
 
     res.status(201).json({
@@ -37,10 +72,19 @@ exports.requestRide = async (req, res) => {
       message: "Ride booked successfully",
       booking: newBooking,
     });
+
   } catch (err) {
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error('❌ Server error while booking ride:', err.message);
+    console.error('🧾 Full error:', err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message, // Add this to help client debug
+    });
   }
 };
+
 
 
 exports.updateBookingStatus = async (req, res) => {
