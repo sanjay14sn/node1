@@ -4,7 +4,8 @@ const {
   requestRide,
   updateBookingStatus,
   getBookingStatus,
-  getDriverBookings
+  getDriverBookings,
+  cancelRideByUser
 } = require("../controllers/bookridecontroller");
 const verifyAuth = require("../middlewares/authMiddleware");
 
@@ -17,6 +18,10 @@ router.patch("/booking/:bookingId", verifyAuth, updateBookingStatus);
 router.get("/bookings", verifyAuth, getBookingStatus);
 
 router.get("/driver/bookings", verifyAuth, getDriverBookings);
+
+// Cancel a ride booking (user)
+router.patch('/bookings/:bookingId/cancel', verifyAuth, cancelRideByUser);
+
 
 
 module.exports = router;

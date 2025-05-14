@@ -31,15 +31,14 @@ exports.requestRide = async (req, res) => {
       rideId,
       userId,
       seatsBooked,
-      bookingStatus: "pending" // ✅ fixed to lowercase
+      bookingStatus: "pending" // still pending until driver accepts
     });
 
     await newBooking.save();
     console.log('✅ New booking saved:', newBooking._id);
 
-    ride.seatsAvailable -= seatsBooked;
-    await ride.save();
-    console.log(`🪑 Updated ride seat count. Remaining: ${ride.seatsAvailable}`);
+    // ❌ Remove this line:
+    // ride.seatsAvailable -= seatsBooked;
 
     const driver = await User.findOne({ uid: ride.uid });
 
@@ -70,12 +69,12 @@ exports.requestRide = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Ride booked successfully",
+      message: "Ride request sent successfully",
       booking: newBooking,
     });
 
   } catch (err) {
-    console.error('❌ Server error while booking ride:', err.message);
+    console.error('❌ Server error while requesting ride:', err.message);
     console.error('🧾 Full error:', err);
 
     res.status(500).json({
@@ -85,6 +84,7 @@ exports.requestRide = async (req, res) => {
     });
   }
 };
+
 
 
 exports.updateBookingStatus = async (req, res) => {
@@ -107,10 +107,24 @@ exports.updateBookingStatus = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid booking status" });
     }
 
+    // If confirming, check seat availability
+    if (bookingStatus === "confirmed") {
+      if (ride.seatsAvailable < booking.seatsBooked) {
+        return res.status(400).json({ success: false, message: "Not enough seats available" });
+      }
+      ride.seatsAvailable -= booking.seatsBooked;
+      await ride.save();
+    }
+
+    // If cancelling, release the seats (if previously confirmed)
+    if (booking.bookingStatus === "confirmed" && bookingStatus === "cancelled") {
+      ride.seatsAvailable += booking.seatsBooked;
+      await ride.save();
+    }
+
     booking.bookingStatus = bookingStatus;
     await booking.save();
 
-    // Optional: send notification to passenger
     const passenger = await User.findOne({ uid: booking.userId });
     if (passenger?.fcmToken) {
       const payload = {
@@ -131,6 +145,44 @@ exports.updateBookingStatus = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
+
+
+exports.cancelRideByUser = async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const { bookingId } = req.params;
+
+    const booking = await BookRide.findById(bookingId);
+    if (!booking || booking.userId !== userId) {
+      return res.status(404).json({ success: false, message: "Booking not found or unauthorized" });
+    }
+
+    if (booking.bookingStatus === "cancelled") {
+      return res.status(400).json({ success: false, message: "Booking already cancelled" });
+    }
+
+    const ride = await Ride.findById(booking.rideId);
+    if (!ride) {
+      return res.status(404).json({ success: false, message: "Ride not found" });
+    }
+
+    if (booking.bookingStatus === "confirmed") {
+      ride.seatsAvailable += booking.seatsBooked;
+      await ride.save();
+    }
+
+    booking.bookingStatus = "cancelled";
+    await booking.save();
+
+    res.status(200).json({ success: true, message: "Booking cancelled successfully", booking });
+  } catch (err) {
+    console.error("❌ Error cancelling booking by user:", err.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 
 exports.getBookingStatus = async (req, res) => {
   try {

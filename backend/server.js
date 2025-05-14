@@ -47,7 +47,7 @@ console.log("🌐 CORS enabled for all origins");
 // Routes
 const products = require("./routes/product");
 const publishRoutes = require("./routes/publish"); // <-- ✅ Add this
-const orders = require("./routes/order");
+
 const userRoutes = require("./routes/user");
 // In server.js
 const priceRoutes = require("./routes/price");
@@ -58,7 +58,7 @@ app.use("/api/v1", priceRoutes); // Link the price route
 app.use("/api/v1", userRoutes);
 
 app.use("/api/v1/", products);
-app.use("/api/v1/", orders);
+
 app.use("/api/v1/rides", publishRoutes); // <-- ✅ Add this
 
 // Health check
