@@ -2,6 +2,7 @@ const BookRide = require("../models/bookridemodel");
 const Ride = require("../models/publishmodel");
 const User = require("../models/user");
 const admin = require('firebase-admin');
+
 exports.requestRide = async (req, res) => {
   try {
     const { rideId, seatsBooked } = req.body;
@@ -30,7 +31,7 @@ exports.requestRide = async (req, res) => {
       rideId,
       userId,
       seatsBooked,
-      bookingStatus: "Pending"
+      bookingStatus: "pending" // ✅ fixed to lowercase
     });
 
     await newBooking.save();
@@ -80,11 +81,10 @@ exports.requestRide = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error",
-      error: err.message, // Add this to help client debug
+      error: err.message,
     });
   }
 };
-
 
 
 exports.updateBookingStatus = async (req, res) => {
@@ -103,7 +103,7 @@ exports.updateBookingStatus = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not authorized to update this booking" });
     }
 
-    if (bookingStatus !== "Confirmed" && bookingStatus !== "Rejected") {
+    if (!["confirmed", "cancelled"].includes(bookingStatus)) {
       return res.status(400).json({ success: false, message: "Invalid booking status" });
     }
 
@@ -116,9 +116,9 @@ exports.updateBookingStatus = async (req, res) => {
       const payload = {
         notification: {
           title: `Your ride has been ${bookingStatus}`,
-          body: bookingStatus === "Confirmed"
+          body: bookingStatus === "confirmed"
             ? "Your booking is confirmed 🎉"
-            : "Sorry, your booking was rejected",
+            : "Sorry, your booking was cancelled",
         },
         token: passenger.fcmToken,
       };
