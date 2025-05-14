@@ -131,3 +131,26 @@ exports.updateBookingStatus = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+exports.getBookingStatus = async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const { rideId } = req.query;
+
+    if (!rideId) {
+      return res.status(400).json({ success: false, message: "rideId is required" });
+    }
+
+    const booking = await BookRide.findOne({ rideId, userId });
+
+    if (!booking) {
+      return res.status(200).json({ success: true, booking: null });
+    }
+
+    return res.status(200).json({ success: true, booking });
+  } catch (err) {
+    console.error("❌ Error fetching booking:", err.message);
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
+  }
+};
+
