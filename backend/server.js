@@ -51,6 +51,8 @@ const orders = require("./routes/order");
 const userRoutes = require("./routes/user");
 // In server.js
 const priceRoutes = require("./routes/price");
+const bookRideRoutes = require("./routes/bookride");
+app.use("/api/v1", bookRideRoutes);
 app.use("/api/v1", priceRoutes); // Link the price route
 
 app.use("/api/v1", userRoutes);
