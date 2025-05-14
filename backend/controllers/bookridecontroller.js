@@ -45,40 +45,45 @@ exports.requestRide = async (req, res) => {
 
 exports.updateBookingStatus = async (req, res) => {
   try {
+    const { bookingStatus } = req.body;
     const { bookingId } = req.params;
-    const { status } = req.body; // status can be 'confirmed' or 'rejected'
     const driverId = req.user.uid;
 
-    const booking = await BookRide.findById(bookingId).populate("rideId");
-    if (!booking) return res.status(404).json({ success: false, message: "Booking not found" });
-
-    if (booking.rideId.uid !== driverId) {
-      return res.status(403).json({ success: false, message: "Not authorized" });
+    const booking = await BookRide.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
     }
 
-    // Update the booking status
-    booking.bookingStatus = status;
+    const ride = await Ride.findById(booking.rideId);
+    if (!ride || ride.uid !== driverId) {
+      return res.status(403).json({ success: false, message: "Not authorized to update this booking" });
+    }
+
+    if (bookingStatus !== "Confirmed" && bookingStatus !== "Rejected") {
+      return res.status(400).json({ success: false, message: "Invalid booking status" });
+    }
+
+    booking.bookingStatus = bookingStatus;
     await booking.save();
 
-    // Send notification to the user
-    const user = await User.findById(booking.userId);
-    if (user?.fcmToken) {
+    // Optional: send notification to passenger
+    const passenger = await User.findOne({ uid: booking.userId });
+    if (passenger?.fcmToken) {
       const payload = {
         notification: {
-          title: status === 'confirmed' ? "Ride Confirmed 🎉" : "Ride Rejected 😞",
-          body: `Your booking for ride from ${booking.rideId.from.city} to ${booking.rideId.to.city} has been ${status}.`,
+          title: `Your ride has been ${bookingStatus}`,
+          body: bookingStatus === "Confirmed"
+            ? "Your booking is confirmed 🎉"
+            : "Sorry, your booking was rejected",
         },
-        token: user.fcmToken,
+        token: passenger.fcmToken,
       };
       await admin.messaging().send(payload);
     }
 
-    res.status(200).json({
-      success: true,
-      message: `Booking ${status}`,
-      booking,
-    });
+    return res.status(200).json({ success: true, message: "Booking status updated", booking });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
