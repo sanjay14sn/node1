@@ -230,11 +230,14 @@ exports.getConfirmedBookings = async (req, res) => {
     const confirmedBookings = await BookRide.find({
       userId,
       bookingStatus: 'confirmed'
-    }).populate('rideId'); // 👈 This brings in ride details
+    }).populate('rideId');
+
+    // Filter out bookings with missing ride data
+    const filteredBookings = confirmedBookings.filter(booking => booking.rideId !== null);
 
     res.status(200).json({
       success: true,
-      bookings: confirmedBookings,
+      bookings: filteredBookings,
     });
   } catch (err) {
     console.error('❌ Error fetching confirmed bookings:', err);
@@ -244,3 +247,4 @@ exports.getConfirmedBookings = async (req, res) => {
     });
   }
 };
+
