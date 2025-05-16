@@ -6,7 +6,7 @@ const {
   getBookingStatus,
   getDriverBookings,
   cancelRideByUser,
-  getConfirmedBookingsForUser,
+  getConfirmedBookings,
 } = require("../controllers/bookridecontroller");
 const verifyAuth = require("../middlewares/authMiddleware");
 
@@ -24,6 +24,6 @@ router.get("/driver/bookings", verifyAuth, getDriverBookings);
 router.patch('/bookings/:bookingId/cancel', verifyAuth, cancelRideByUser);
 
 // Add this line with your other routes
-router.get("/confirmed", verifyAuth, getConfirmedBookingsForUser);
+router.get("/confirmed", verifyAuth, getConfirmedBookings);
 
 module.exports = router;
