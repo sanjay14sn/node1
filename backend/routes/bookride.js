@@ -23,6 +23,7 @@ router.get("/driver/bookings", verifyAuth, getDriverBookings);
 // Cancel a ride booking (user)
 router.patch('/bookings/:bookingId/cancel', verifyAuth, cancelRideByUser);
 
-
+// Add this line with your other routes
+router.get("/confirmed", verifyAuth, getConfirmedBookingsForUser);
 
 module.exports = router;
