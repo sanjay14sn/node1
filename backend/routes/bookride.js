@@ -5,7 +5,8 @@ const {
   updateBookingStatus,
   getBookingStatus,
   getDriverBookings,
-  cancelRideByUser
+  cancelRideByUser,
+  getConfirmedBookingsForUser,
 } = require("../controllers/bookridecontroller");
 const verifyAuth = require("../middlewares/authMiddleware");
 

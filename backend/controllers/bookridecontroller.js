@@ -223,3 +223,18 @@ exports.getDriverBookings = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+exports.getConfirmedBookingsForUser = async (req, res) => {
+  try {
+    const userId = req.user.uid;
+
+    const bookings = await BookRide.find({
+      userId,
+      bookingStatus: 'confirmed',
+    }).populate('rideId'); // Populate ride details
+
+    res.status(200).json({ success: true, bookings });
+  } catch (err) {
+    console.error('❌ Error fetching confirmed bookings:', err.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
