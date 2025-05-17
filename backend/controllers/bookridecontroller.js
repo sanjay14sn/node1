@@ -2,6 +2,7 @@ const BookRide = require("../models/bookridemodel");
 const Ride = require("../models/publishmodel");
 const User = require("../models/user");
 const admin = require('firebase-admin');
+const mongoose = require("mongoose");
 
 exports.requestRide = async (req, res) => {
   try {
@@ -225,26 +226,27 @@ exports.getDriverBookings = async (req, res) => {
 };
 exports.getConfirmedBookings = async (req, res) => {
   try {
-    const userId = req.user.uid;
+    const userId = req.user.uid; // Firebase user ID (string)
 
     const confirmedBookings = await BookRide.find({
-      userId,
-      bookingStatus: 'confirmed'
-    }).populate('rideId');
+      userId: userId,
+      bookingStatus: "confirmed"
+    }).populate("rideId");
 
-    // Filter out bookings with missing ride data
-    const filteredBookings = confirmedBookings.filter(booking => booking.rideId !== null);
+    // Filter out any bookings with missing ride info
+    const filteredBookings = confirmedBookings.filter(
+      (booking) => booking.rideId !== null
+    );
 
     res.status(200).json({
       success: true,
       bookings: filteredBookings,
     });
   } catch (err) {
-    console.error('❌ Error fetching confirmed bookings:', err);
+    console.error("❌ Error fetching confirmed bookings:", err);
     res.status(500).json({
       success: false,
-      message: 'Server error',
+      message: "Server error",
     });
   }
 };
-
